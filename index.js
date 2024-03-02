@@ -10,6 +10,10 @@ const PORT = 3000;
 app.use(express.json());
 app.use(fileUpload());
 
+app.get('/', function (req, res) {
+    res.send('Hello World')
+  })
+
 app.post('/compressPPT', async (req, res) => {
   if (!req.files || !req.files.pptFile) {
     return res.status(400).send('No files were uploaded.');
@@ -29,23 +33,12 @@ app.post('/compressPPT', async (req, res) => {
       zlib: { level: 9 } // Set compression level (0-9)
     });
 
-
-    // archive.on('warning', function(err) {
-    //   if (err.code === 'ENOENT') {
-    //     console.warn(err);
-    //   } else {
-    //     throw err;
-    //   }
-    // });
-
-    // archive.on('error', function(err) {
-    //   throw err;
-    // });
-
     archive.pipe(output);
     archive.append(fs.createReadStream(filePath), { name: fileName });
     archive.finalize();
 
+
+    // to send compressed file with user
     res.sendFile(`${fileName}.zip`, { root: __dirname });
   } catch (error) {
     console.error(error);
