@@ -10,6 +10,9 @@ const PORT = process.env.Port || 3000;
 app.use(express.json());
 app.use(fileUpload());
 
+app.get('/', function (req, res) {
+  res.send('Hello World')
+})
 
 app.post('/compressPPT', async (req, res) => {
   if (!req.files || !req.files.pptFile) {
