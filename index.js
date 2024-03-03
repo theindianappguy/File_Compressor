@@ -28,7 +28,7 @@ app.post('/compressPPT', async (req, res) => {
     await pptFile.mv(filePath);
 
     // Compress the file
-    const output = fs.createWriteStream(`${fileName}.zip`);
+    const output = fs.createWriteStream('new.zip');
     const archive = archiver('zip', {
       zlib: { level: 9 } // Set compression level (0-9)
     });
