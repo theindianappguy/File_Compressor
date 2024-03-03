@@ -33,12 +33,27 @@ app.post('/compressPPT', async (req, res) => {
       zlib: { level: 9 } // Set compression level (0-9)
     });
 
+    output.on('close', function () {
+      console.log(archive.pointer() + ' total bytes');
+      console.log('archiver has been finalized and the output file descriptor has closed.');
+    });
+
+    archive.on('warning', function(err) {
+      if (err.code === 'ENOENT') {
+        console.warn(err);
+      } else {
+        throw err;
+      }
+    });
+
+    archive.on('error', function(err) {
+      throw err;
+    });
+
     archive.pipe(output);
     archive.append(fs.createReadStream(filePath), { name: fileName });
     archive.finalize();
 
-
-    // to send compressed file with user
     res.sendFile(`${fileName}.zip`, { root: __dirname });
   } catch (error) {
     console.error(error);
