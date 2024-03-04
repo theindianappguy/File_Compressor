@@ -40,10 +40,10 @@ app.post('/compressPPT', async (req, res) => {
       zlib: { level: 9 } // Set compression level (0-9)
     });
 
-    // output.on('close', () => {
-    //   console.log('Archive finalized');
-    //   res.sendFile(`${fileName}.zip`, { root: zipDir });
-    // });
+    output.on('close', () => {
+      console.log('Archive finalized');
+      res.sendFile(`${fileName}.zip`, { root: zipDir });
+    });
 
     archive.pipe(output);
     archive.append(fs.createReadStream(uploadFilePath), { name: fileName });
