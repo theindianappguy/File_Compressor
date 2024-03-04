@@ -1,14 +1,27 @@
 const express = require('express');
-const fileUpload = require('express-fileupload');
+const multer = require('multer');
 const archiver = require('archiver');
+const dotenv = require('dotenv');
 const fs = require('fs');
 const path = require('path');
 
 const app = express();
-const PORT = process.env.Port || 3000;
+const PORT = process.env.PORT || 3000;
+dotenv.config();
+
+// Set up multer storage
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'upload'); // Files will be uploaded to the 'upload' directory
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname); // Use the original filename
+  }
+});
+
+const upload = multer({ storage });
 
 app.use(express.json());
-app.use(fileUpload());
 
 // Create upload and zip directories if they don't exist
 const uploadDir = path.join(__dirname, 'upload');
@@ -20,19 +33,15 @@ app.get('/hello', function (req, res) {
   res.send('Hello World');
 });
 
-app.post('/compressPPT', async (req, res) => {
-  if (!req.files || !req.files.pptFile) {
+app.post('/compressPPT', upload.single('pptFile'), async (req, res) => {
+  if (!req.file) {
     return res.status(400).send('No files were uploaded.');
   }
 
   try {
-    const pptFile = req.files.pptFile;
-    const fileName = pptFile.name;
+    const fileName = req.file.originalname;
     const uploadFilePath = path.join(uploadDir, fileName);
     const zipFilePath = path.join(zipDir, `${fileName}.zip`);
-
-    // Save the uploaded file to the upload directory
-    await pptFile.mv(uploadFilePath);
 
     // Compress the file
     const output = fs.createWriteStream(zipFilePath);
