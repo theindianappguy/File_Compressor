@@ -1,21 +1,18 @@
 const express = require('express');
 const fileUpload = require('express-fileupload');
 const archiver = require('archiver');
-const dotenv = require('dotenv');
 const fs = require('fs');
 const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-dotenv.config();
+const PORT = process.env.Port || 3000;
+
 app.use(express.json());
 app.use(fileUpload());
 
-// Define upload and zip directories
+// Create upload and zip directories if they don't exist
 const uploadDir = path.join(__dirname, 'upload');
 const zipDir = path.join(__dirname, 'zip');
-
-// Ensure upload and zip directories exist
 fs.mkdirSync(uploadDir, { recursive: true });
 fs.mkdirSync(zipDir, { recursive: true });
 
@@ -43,17 +40,14 @@ app.post('/compressPPT', async (req, res) => {
       zlib: { level: 9 } // Set compression level (0-9)
     });
 
-    archive.pipe(output);
-    archive.append(fs.createReadStream(uploadFilePath), { name: fileName });
-
     output.on('close', () => {
-      console.log('Archive wrote %d bytes', archive.pointer());
+      console.log('Archive finalized');
       res.sendFile(`${fileName}.zip`, { root: zipDir });
     });
 
+    archive.pipe(output);
+    archive.append(fs.createReadStream(uploadFilePath), { name: fileName });
     archive.finalize();
-
-    res.sendFile(`${fileName}.zip`, { root: zipDir });
   } catch (error) {
     console.error(error);
     res.status(500).json(error);
