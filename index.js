@@ -28,29 +28,11 @@ app.post('/compressPPT', async (req, res) => {
     await pptFile.mv(filePath);
 
     // Compress the file
-    const output = fs.createWriteStream('new.zip');
+    const output = fs.createWriteStream(`${fileName}.zip`);
     const archive = archiver('zip', {
       zlib: { level: 9 } // Set compression level (0-9)
     });
-
-    output.on('close', function () {
-      console.log(archive.pointer() + ' total bytes');
-      console.log('archiver has been finalized and the output file descriptor has closed.');
-    });
-
-    archive.on('warning', function(err) {
-      if (err.code === 'ENOENT') {
-        console.warn(err);
-      } else {
-        throw err;
-      }
-    });
-
-    archive.on('error', function(err) {
-      throw err;
-    });
-
-    archive.pipe(output);
+    
     archive.append(fs.createReadStream(filePath), { name: fileName });
     archive.finalize();
 
