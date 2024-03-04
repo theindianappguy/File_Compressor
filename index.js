@@ -11,15 +11,13 @@ dotenv.config();
 app.use(express.json());
 app.use(fileUpload());
 
-// Create upload and zip directories if they don't exist
+// Define upload and zip directories
 const uploadDir = path.join(__dirname, 'upload');
 const zipDir = path.join(__dirname, 'zip');
-try {
-  fs.mkdirSync(uploadDir, { recursive: true });
-  fs.mkdirSync(zipDir, { recursive: true });
-} catch (error) {
-  console.error("Error creating directories:", error);
-}
+
+// Ensure upload and zip directories exist
+fs.mkdirSync(uploadDir, { recursive: true });
+fs.mkdirSync(zipDir, { recursive: true });
 
 app.get('/hello', function (req, res) {
   res.send('Hello World');
@@ -47,21 +45,17 @@ app.post('/compressPPT', async (req, res) => {
 
     archive.pipe(output);
     archive.append(fs.createReadStream(uploadFilePath), { name: fileName });
+
+    output.on('close', () => {
+      console.log('Archive wrote %d bytes', archive.pointer());
+      res.sendFile(`${fileName}.zip`, { root: zipDir });
+    });
+
     archive.finalize();
 
-    output.on('close', function () {
-      res.download(zipFilePath, `${fileName}.zip`, function (err) {
-        if (err) {
-          console.error("Error sending zip file:", err);
-          res.status(500).end();
-        } else {
-          // Clean up uploaded file after sending
-          fs.unlinkSync(uploadFilePath);
-        }
-      });
-    });
+    res.sendFile(`${fileName}.zip`, { root: zipDir });
   } catch (error) {
-    console.error("Error compressing PPT:", error);
+    console.error(error);
     res.status(500).json(error);
   }
 });
