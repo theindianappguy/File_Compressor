@@ -3,7 +3,7 @@ const fileUpload = require('express-fileupload');
 const archiver = require('archiver');
 const dotenv = require('dotenv');
 const fs = require('fs');
-const path = require('path');
+const mkdirp = require('mkdirp');
 
 const app = express();
 const PORT = process.env.Port || 3000;
@@ -12,10 +12,10 @@ app.use(express.json());
 app.use(fileUpload());
 
 // Create upload and zip directories if they don't exist
-const uploadDir = path.join(__dirname, 'upload');
-const zipDir = path.join(__dirname, 'zip');
-fs.mkdirSync(uploadDir, { recursive: true });
-fs.mkdirSync(zipDir, { recursive: true });
+const uploadDir = 'upload';
+const zipDir = 'zip';
+mkdirp.sync(uploadDir);
+mkdirp.sync(zipDir);
 
 app.get('/hello', function (req, res) {
   res.send('Hello World');
@@ -29,8 +29,8 @@ app.post('/compressPPT', async (req, res) => {
   try {
     const pptFile = req.files.pptFile;
     const fileName = pptFile.name;
-    const uploadFilePath = path.join(uploadDir, fileName);
-    const zipFilePath = path.join(zipDir, `${fileName}.zip`);
+    const uploadFilePath = `${uploadDir}/${fileName}`;
+    const zipFilePath = `${zipDir}/${fileName}.zip`;
 
     // Save the uploaded file to the upload directory
     await pptFile.mv(uploadFilePath);
